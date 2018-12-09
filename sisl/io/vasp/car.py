@@ -134,7 +134,7 @@ class carSileVASP(SileVASP):
             xyz = np.dot(xyz, sc.cell)
 
         # The POT/CONT-CAR does not contain information on the atomic species
-        return Geometry(xyz=xyz, atom=atom, sc=sc)
+        return Geometry(xyz=xyz, atom=atom, cell=sc)
 
     def ArgumentParser(self, p=None, *args, **kwargs):
         """ Returns the arguments that is available for this Sile """

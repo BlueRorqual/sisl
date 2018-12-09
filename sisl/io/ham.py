@@ -82,7 +82,7 @@ class hamiltonianSile(Sile):
 
         # Return the geometry
         # Create list of atoms
-        geom = Geometry(xyz, atom=Atom[Z], sc=Cell(cell, nsc))
+        geom = Geometry(xyz, atom=Atom[Z], cell=Cell(cell, nsc))
 
         return geom
 
