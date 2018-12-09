@@ -20,7 +20,7 @@ class carSileVASP(SileVASP):
     """
 
     def _setup(self, *args, **kwargs):
-        """ Setup the `poscarSile` after initialization """
+        """ Setup the `carSile` after initialization """
         self._scale = 1.
 
     @sile_fh_open()
@@ -61,7 +61,7 @@ class carSileVASP(SileVASP):
             self._write(fmt.format(*geom.xyz[ia, :]))
 
     @sile_fh_open(True)
-    def read_supercell(self):
+    def read_cell(self):
         """ Returns `Cell` object from the CONTCAR/POSCAR file """
 
         # read first line
@@ -81,7 +81,7 @@ class carSileVASP(SileVASP):
     def read_geometry(self):
         """ Returns Geometry object from the CONTCAR/POSCAR file
         """
-        sc = self.read_supercell()
+        sc = self.read_cell()
 
         # The species labels are not always included in *CAR
         line1 = self.readline().split()

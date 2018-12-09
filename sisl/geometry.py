@@ -46,7 +46,7 @@ class Geometry(CellChild):
     .. code:: python
 
        >>> square = Geometry([[0.5, 0.5, 0.5]], Atom(1),
-       ...                   sc=Cell([1, 1, 10], nsc=[3, 3, 1]))
+       ...                   cell=Cell([1, 1, 10], nsc=[3, 3, 1]))
        >>> print(square)
        Geometry{na: 1, no: 1,
         Atoms{species: 1,
@@ -110,7 +110,7 @@ class Geometry(CellChild):
     Atom : contained atoms are each an object of this
     """
 
-    def __init__(self, xyz, atom=None, sc=None):
+    def __init__(self, xyz, atom=None, cell=None, **kwargs):
 
         # Create the geometry coordinate
         # We need flatten to ensure a copy
@@ -126,9 +126,11 @@ class Geometry(CellChild):
         # Assign a group specifier
         self._names = NamedIndex()
 
-        self.__init_sc(sc)
+        if cell is None:
+            cell = kwargs.get('sc', None)
+        self.__init_cell(cell)
 
-    def __init_sc(self, sc):
+    def __init_cell(self, cell):
         """ Initializes the supercell by *calculating* the size if not supplied
 
         If the supercell has not been passed we estimate the unit cell size
@@ -137,9 +139,9 @@ class Geometry(CellChild):
         """
         # We still need the *default* super cell for
         # estimating the supercell
-        self.set_cell(sc)
+        self.set_cell(cell)
 
-        if sc is not None:
+        if cell is not None:
             return
 
         # First create an initial guess for the supercell
@@ -913,7 +915,7 @@ class Geometry(CellChild):
 
     def copy(self):
         """ A copy of the object. """
-        g = self.__class__(np.copy(self.xyz), atom=self.atoms.copy(), sc=self.sc.copy())
+        g = self.__class__(np.copy(self.xyz), atom=self.atoms.copy(), cell=self.sc.copy())
         g._names = self.names.copy()
         return g
 
@@ -1029,9 +1031,9 @@ class Geometry(CellChild):
         atms = self.sc2uc(atom)
         if cell is None:
             return self.__class__(self.xyz[atms, :],
-                                  atom=self.atoms.sub(atms), sc=self.sc.copy())
+                                  atom=self.atoms.sub(atms), cell=self.sc.copy())
         return self.__class__(self.xyz[atms, :],
-                              atom=self.atoms.sub(atms), sc=cell)
+                              atom=self.atoms.sub(atms), cell=cell)
 
     def cut(self, seps, axis, seg=0, rtol=1e-4, atol=1e-4):
         """ Returns a subset of atoms from the geometry by cutting the geometry into `seps` parts along the direction `axis`.
@@ -1132,7 +1134,7 @@ class Geometry(CellChild):
 
         Examples
         --------
-        >>> geom = Geometry([[0, 0, 0], [0.5, 0, 0]], sc=1.)
+        >>> geom = Geometry([[0, 0, 0], [0.5, 0, 0]], cell=1.)
         >>> g = geom.tile(2,axis=0)
         >>> print(g.xyz) # doctest: +NORMALIZE_WHITESPACE
         [[0.   0.   0. ]
@@ -1174,7 +1176,7 @@ class Geometry(CellChild):
 
         # Create the geometry and return it (note the smaller atoms array
         # will also expand via tiling)
-        return self.__class__(xyz, atom=self.atoms.tile(reps), sc=sc)
+        return self.__class__(xyz, atom=self.atoms.tile(reps), cell=sc)
 
     def repeat(self, reps, axis):
         """ Create a repeated geometry
@@ -1208,7 +1210,7 @@ class Geometry(CellChild):
 
         Examples
         --------
-        >>> geom = Geometry([[0, 0, 0], [0.5, 0, 0]], sc=1)
+        >>> geom = Geometry([[0, 0, 0], [0.5, 0, 0]], cell=1)
         >>> g = geom.repeat(2,axis=0)
         >>> print(g.xyz) # doctest: +NORMALIZE_WHITESPACE
         [[0.   0.   0. ]
@@ -1248,7 +1250,7 @@ class Geometry(CellChild):
         xyz.shape = (-1, 3)
 
         # Create the geometry and return it
-        return self.__class__(xyz, atom=self.atoms.repeat(reps), sc=sc)
+        return self.__class__(xyz, atom=self.atoms.repeat(reps), cell=sc)
 
     def __mul__(self, m):
         """ Implement easy repeat function
@@ -1265,7 +1267,7 @@ class Geometry(CellChild):
 
         Examples
         --------
-        >>> geometry = Geometry([0.] * 3, sc=[1.5, 3, 4])
+        >>> geometry = Geometry([0.] * 3, cell=[1.5, 3, 4])
         >>> geometry * 2 == geometry.tile(2, 0).tile(2, 1).tile(2, 2)
         True
         >>> geometry * [2, 1, 2] == geometry.tile(2, 0).tile(2, 2)
@@ -1475,7 +1477,7 @@ class Geometry(CellChild):
             # subtract and add origo, before and after rotation
             xyz[atom, :] = q.rotate(xyz[atom, :] - origo[None, :]) + origo[None, :]
 
-        return self.__class__(xyz, atom=self.atoms.copy(), sc=sc)
+        return self.__class__(xyz, atom=self.atoms.copy(), cell=sc)
 
     def rotate_miller(self, m, v):
         """ Align Miller direction along ``v``
@@ -1543,7 +1545,7 @@ class Geometry(CellChild):
         xyz = np.copy(self.xyz)
         xyz[a, :] = self.xyz[b, :]
         xyz[b, :] = self.xyz[a, :]
-        return self.__class__(xyz, atom=self.atoms.swap(a, b), sc=self.sc.copy())
+        return self.__class__(xyz, atom=self.atoms.swap(a, b), cell=self.sc.copy())
 
     def swapaxes(self, a, b, swap='cell+xyz'):
         """ Swap the axis for the atomic coordinates and the cell vectors
@@ -1572,7 +1574,7 @@ class Geometry(CellChild):
             sc = self.sc.swapaxes(a, b)
         else:
             sc = self.sc.copy()
-        return self.__class__(xyz, atom=self.atoms.copy(), sc=sc)
+        return self.__class__(xyz, atom=self.atoms.copy(), cell=sc)
 
     def center(self, atom=None, what='xyz'):
         """ Returns the center of the geometry
@@ -1664,7 +1666,7 @@ class Geometry(CellChild):
                 raise ValueError(self.__class__.__name__ + '.append requires align keyword to be one of [none, min]')
             atom = self.atoms.append(other.atom)
             sc = self.sc.append(other.sc, axis)
-        return self.__class__(xyz, atom=atom, sc=sc)
+        return self.__class__(xyz, atom=atom, cell=sc)
 
     def prepend(self, other, axis, align='none'):
         """ Prepend two structures along `axis`
@@ -1723,7 +1725,7 @@ class Geometry(CellChild):
             atom = self.atoms.prepend(other.atom)
             sc = self.sc.append(other.sc, axis)
 
-        return self.__class__(xyz, atom=atom, sc=sc)
+        return self.__class__(xyz, atom=atom, cell=sc)
 
     def add(self, other):
         """ Merge two geometries (or a Geometry and Cell) by adding the two atoms together
@@ -1751,7 +1753,7 @@ class Geometry(CellChild):
             xyz = np.append(self.xyz, other.xyz, axis=0)
             sc = self.sc.copy()
             atom = self.atoms.add(other.atom)
-        return self.__class__(xyz, atom=atom, sc=sc)
+        return self.__class__(xyz, atom=atom, cell=sc)
 
     def insert(self, atom, geom):
         """ Inserts other atoms right before index
@@ -1775,7 +1777,7 @@ class Geometry(CellChild):
         """
         xyz = np.insert(self.xyz, atom, geom.xyz, axis=0)
         atoms = self.atoms.insert(atom, geom.atom)
-        return self.__class__(xyz, atom=atoms, sc=self.sc.copy())
+        return self.__class__(xyz, atom=atoms, cell=self.sc.copy())
 
     def __add__(self, b):
         """ Merge two geometries (or geometry and supercell)
@@ -1919,7 +1921,7 @@ class Geometry(CellChild):
             atom = _a.asarrayi(atom).ravel()
             xyz = np.copy(self.xyz)
             xyz[atom, :] = self.xyz[atom[::-1], :]
-        return self.__class__(xyz, atom=self.atoms.reverse(atom), sc=self.sc.copy())
+        return self.__class__(xyz, atom=self.atoms.reverse(atom), cell=self.sc.copy())
 
     def mirror(self, plane, atom=None):
         """ Mirrors the atomic coordinates by multiplying by -1
@@ -1946,7 +1948,7 @@ class Geometry(CellChild):
             g.xyz[atom, 0] *= -1
         elif lplane in ['xz', 'ac']:
             g.xyz[atom, 1] *= -1
-        return self.__class__(g.xyz, atom=g.atom, sc=self.sc.copy())
+        return self.__class__(g.xyz, atom=g.atom, cell=self.sc.copy())
 
     @property
     def fxyz(self):
@@ -1969,12 +1971,12 @@ class Geometry(CellChild):
 
         Examples
         --------
-        >>> geom = Geometry([[0, 0, 0], [0.5, 0, 0]], sc=1.)
+        >>> geom = Geometry([[0, 0, 0], [0.5, 0, 0]], cell=1.)
         >>> print(geom.axyz(isc=[1,0,0])) # doctest: +NORMALIZE_WHITESPACE
         [[1.   0.   0. ]
          [1.5  0.   0. ]]
 
-        >>> geom = Geometry([[0, 0, 0], [0.5, 0, 0]], sc=1.)
+        >>> geom = Geometry([[0, 0, 0], [0.5, 0, 0]], cell=1.)
         >>> print(geom.axyz(0)) # doctest: +NORMALIZE_WHITESPACE
         [0.  0.  0.]
 
@@ -2015,7 +2017,7 @@ class Geometry(CellChild):
         xyz = self.xyz * scale
         atom = self.atoms.scale(scale)
         sc = self.sc.scale(scale)
-        return self.__class__(xyz, atom=atom, sc=sc)
+        return self.__class__(xyz, atom=atom, cell=sc)
 
     def within_sc(self, shapes, isc=None,
                   idx=None, idx_xyz=None,
@@ -2908,7 +2910,7 @@ class Geometry(CellChild):
         xyz = aseg.get_positions()
         cell = aseg.get_cell()
         # Convert to sisl object
-        return cls(xyz, atom=Z, sc=cell)
+        return cls(xyz, atom=Z, cell=cell)
 
     def toASE(self):
         """ Returns the geometry as an ASE ``Atoms`` object """
@@ -3028,7 +3030,7 @@ class Geometry(CellChild):
 
         Examples
         --------
-        >>> geom = Geometry([0]*3, Atom(1, R=1.), sc=Cell(1., nsc=[5, 5, 1]))
+        >>> geom = Geometry([0]*3, Atom(1, R=1.), cell=Cell(1., nsc=[5, 5, 1]))
         >>> geom.distance() # use geom.maxR() # doctest: +NORMALIZE_WHITESPACE
         array([1.])
         >>> geom.distance(tol=[0.5, 0.4, 0.3, 0.2])
@@ -3272,7 +3274,7 @@ class Geometry(CellChild):
         sc.__setstate__(d)
         atoms = Atoms()
         atoms.__setstate__(d['atom'])
-        self.__init__(d['xyz'], atom=atoms, sc=sc)
+        self.__init__(d['xyz'], atom=atoms, cell=sc)
 
     @classmethod
     def _ArgumentParser_args_single(cls):
