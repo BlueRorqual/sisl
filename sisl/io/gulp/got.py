@@ -13,7 +13,7 @@ from sisl.messages import info, warn
 from .sile import SileGULP
 from .fc import fcSileGULP
 from ..sile import *
-from sisl import Geometry, Atom, Orbital, SuperCell
+from sisl import Geometry, Atom, Orbital, Cell
 from sisl import constant, units
 from sisl.physics import DynamicalMatrix
 
@@ -37,7 +37,7 @@ class gotSileGULP(SileGULP):
     def _setup(self, *args, **kwargs):
         """ Setup `gotSileGULP` after initialization """
         self._keys = dict()
-        self.set_supercell_key('Cartesian lattice vectors')
+        self.set_cell_key('Cartesian lattice vectors')
         self.set_geometry_key('Final fractional coordinates')
         self.set_dynamical_matrix_key('Real Dynamical matrix')
 
@@ -46,7 +46,7 @@ class gotSileGULP(SileGULP):
         if key is not None:
             self._keys[segment] = key
 
-    def set_supercell_key(self, key):
+    def set_cell_key(self, key):
         """ Overwrites internal key lookup value for the cell vectors """
         self.set_key('sc', key)
 
@@ -67,16 +67,16 @@ class gotSileGULP(SileGULP):
         return np.array(sc[:3], np.int32)
 
     @sile_fh_open()
-    def read_supercell(self, key=None, **kwargs):
-        """ Reads a `SuperCell` and creates the GULP cell """
-        self.set_supercell_key(key)
+    def read_cell(self, key=None, **kwargs):
+        """ Reads a `Cell` and creates the GULP cell """
+        self.set_cell_key(key)
 
         f, _ = self.step_to(self._keys['sc'])
         if not f:
             raise ValueError(
-                ('SileGULP tries to lookup the SuperCell vectors '
+                ('SileGULP tries to lookup the Cell vectors '
                  'using key "' + self._keys['sc'] + '". \n'
-                 'Use ".set_supercell_key(...)" to search for different name.\n'
+                 'Use ".set_cell_key(...)" to search for different name.\n'
                  'This could not be found found in file: "' + self.file + '".'))
 
         # skip 1 line
@@ -86,7 +86,7 @@ class gotSileGULP(SileGULP):
             l = self.readline().split()
             cell[i, :] = [float(x) for x in l[:3]]
 
-        return SuperCell(cell)
+        return Cell(cell)
 
     def set_geometry_key(self, key):
         """ Overwrites internal key lookup value for the geometry vectors """
@@ -96,15 +96,15 @@ class gotSileGULP(SileGULP):
     def read_geometry(self, **kwargs):
         """ Reads a geometry and creates the GULP dynamical geometry """
         # create default supercell
-        sc = SuperCell([1, 1, 1])
+        sc = Cell([1, 1, 1])
 
         for _ in [0, 1]:
             # Step to either the geometry or
             f, ki, _ = self.step_either([self._keys['sc'], self._keys['geometry']])
             if not f and ki == 0:
-                raise ValueError('SileGULP tries to lookup the SuperCell vectors '
+                raise ValueError('SileGULP tries to lookup the Cell vectors '
                                  'using key "' + self._keys['sc'] + '". \n'
-                                 'Use ".set_supercell_key(...)" to search for different name.\n'
+                                 'Use ".set_cell_key(...)" to search for different name.\n'
                                  'This could not be found found in file: "' + self.file + '".')
             elif f and ki == 0:
                 # supercell
@@ -115,7 +115,7 @@ class gotSileGULP(SileGULP):
                     cell[i, 0] = float(l[0])
                     cell[i, 1] = float(l[1])
                     cell[i, 2] = float(l[2])
-                sc = SuperCell(cell)
+                sc = Cell(cell)
 
             elif not f and ki == 1:
                 raise ValueError('SileGULP tries to lookup the Geometry coordinates '
@@ -150,7 +150,7 @@ class gotSileGULP(SileGULP):
 
             elif not f:
                 # could not find either cell or geometry
-                raise ValueError('SileGULP tries to lookup the SuperCell or Geometry.\n'
+                raise ValueError('SileGULP tries to lookup the Cell or Geometry.\n'
                                  'None succeeded, ensure file has correct format.\n'
                                  'This could not be found found in file: "{}".'.format(self.file))
 

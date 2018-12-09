@@ -240,11 +240,11 @@ class _SparseGeometry(object):
         If one reduces the number of supercells, *any* sparse element
         that references the supercell will be deleted.
 
-        See `SuperCell.set_nsc` for allowed parameters.
+        See `Cell.set_nsc` for allowed parameters.
 
         See Also
         --------
-        SuperCell.set_nsc : the underlying called method
+        Cell.set_nsc : the underlying called method
         """
         sc = self.sc.copy()
         # Try first in the new one, then we figure out what to do
@@ -872,11 +872,11 @@ class SparseAtom(_SparseGeometry):
         If one reduces the number of supercells *any* sparse element
         that references the supercell will be deleted.
 
-        See `SuperCell.set_nsc` for allowed parameters.
+        See `Cell.set_nsc` for allowed parameters.
 
         See Also
         --------
-        SuperCell.set_nsc : the underlying called method
+        Cell.set_nsc : the underlying called method
         """
         super(SparseAtom, self).set_nsc(self.na, *args, **kwargs)
 
@@ -1428,11 +1428,11 @@ class SparseOrbital(_SparseGeometry):
         If one reduces the number of supercells *any* sparse element
         that references the supercell will be deleted.
 
-        See `SuperCell.set_nsc` for allowed parameters.
+        See `Cell.set_nsc` for allowed parameters.
 
         See Also
         --------
-        SuperCell.set_nsc : the underlying called method
+        Cell.set_nsc : the underlying called method
         """
         super(SparseOrbital, self).set_nsc(self.no, *args, **kwargs)
 
