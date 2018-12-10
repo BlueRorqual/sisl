@@ -55,7 +55,7 @@ class onlysSileSiesta(SileBinSiesta):
         """ Returns Geometry object from a siesta.TSHS file """
 
         # Read supercell
-        sc = self.read_cell()
+        cell = self.read_cell()
 
         na = _siesta.read_tshs_sizes(self.file)[1]
         _bin_check(self, 'read_geometry', 'could not read sizes.')
@@ -88,7 +88,7 @@ class onlysSileSiesta(SileBinSiesta):
             atom.append(get_atom(atoms, orb))
 
         # Create and return geometry object
-        geom = Geometry(xyz, atom, cell=sc)
+        geom = Geometry(xyz, atom, cell=cell)
 
         return geom
 
@@ -261,8 +261,8 @@ class dmSileSiesta(SileBinSiesta):
             # We truly, have no clue,
             # Just generate a boxed system
             xyz = [[x, 0, 0] for x in range(no)]
-            sc = Cell([no, 1, 1], nsc=nsc)
-            geom = Geometry(xyz, Atom(1), cell=sc)
+            cell = Cell([no, 1, 1], nsc=nsc)
+            geom = Geometry(xyz, Atom(1), cell=cell)
 
         if nsc[0] != 0 and np.any(geom.nsc != nsc):
             # We have to update the number of supercells!
@@ -340,8 +340,8 @@ class tsdeSileSiesta(dmSileSiesta):
             # We truly, have no clue,
             # Just generate a boxed system
             xyz = [[x, 0, 0] for x in range(no)]
-            sc = Cell([no, 1, 1], nsc=nsc)
-            geom = Geometry(xyz, Atom(1), cell=sc)
+            cell = Cell([no, 1, 1], nsc=nsc)
+            geom = Geometry(xyz, Atom(1), cell=cell)
 
         if nsc[0] != 0 and np.any(geom.nsc != nsc):
             # We have to update the number of supercells!
@@ -674,14 +674,14 @@ class _gfSileSiesta(SileBinSiesta):
         if obj is None:
             obj = bz.parent
         nspin = len(obj.spin)
-        cell = obj.geom.sc.cell * Ang2Bohr
-        na_u = obj.geom.na
-        no_u = obj.geom.no
-        xa = obj.geom.xyz * Ang2Bohr
+        cell = obj.geometry.sc.cell * Ang2Bohr
+        na_u = obj.geometry.na
+        no_u = obj.geometry.no
+        xa = obj.geometry.xyz * Ang2Bohr
         # The lasto in siesta requires lasto(0) == 0
         # and secondly, the Python index to fortran
         # index makes firsto behave like fortran lasto
-        lasto = obj.geom.firsto
+        lasto = obj.geometry.firsto
         bloch = _a.onesi(3)
         mu = mu * eV2Ry
         NE = len(E)

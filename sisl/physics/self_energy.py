@@ -587,11 +587,11 @@ class RealSpaceSE(SelfEnergy):
 
         if self._options['semi_axis'] is None and self._options['k_axes'] is None:
             # None of the axis has been described
-            sc = self.parent.sc * self._unfold
+            cell = self.parent.sc * self._unfold
             i3 = (nsc[axes] == 3).nonzero()[0]
             if len(i3) == 0:
                 raise ValueError(self.__class__.__name__ + '.initialize could not find a suitable semi-infinite direction, all used directions have nsc != 3')
-            s_ax = np.argmin(fnorm(sc.rcell)[axes[i3]])
+            s_ax = np.argmin(fnorm(cell.rcell)[axes[i3]])
             # Now determine the k_axes
             k_ax = axes[axes != s_ax]
             self._options['semi_axis'] = s_ax
@@ -649,11 +649,11 @@ class RealSpaceSE(SelfEnergy):
         if self._options['bz'] is None:
             # Update the integration grid
             # Note this integration grid is based on the big system.
-            sc = self.parent.sc * self._unfold
-            rcell = fnorm(sc.rcell)[k_ax]
+            cell = self.parent.sc * self._unfold
+            rcell = fnorm(cell.rcell)[k_ax]
             nk = _a.onesi(3)
             nk[k_ax] = np.ceil(self._options['dk'] * rcell).astype(np.int32)
-            self._options['bz'] = MonkhorstPack(sc, nk, trs=self._options['trs'])
+            self._options['bz'] = MonkhorstPack(cell, nk, trs=self._options['trs'])
             info(self.__class__.__name__ + '.initialize determined the number of k-points: {}'.format(' / '.join(map(str, nk[k_ax]))))
 
     def self_energy(self, E, bulk=False, coupling=False, dtype=None, **kwargs):

@@ -82,7 +82,7 @@ class Geometry(CellChild):
         ``xyz[i, :]`` is the atomic coordinate of the i'th atom.
     atom : array_like or Atoms
         atomic species retrieved from the `PeriodicTable`
-    sc : Cell
+    cell : Cell
         the unit-cell describing the atoms in a periodic
         super-cell
 
@@ -93,8 +93,8 @@ class Geometry(CellChild):
 
     >>> xyz = [[0, 0, 0],
     ...        [1, 1, 1]]
-    >>> sc = Cell([2,2,2])
-    >>> g = Geometry(xyz, Atom('H'), sc)
+    >>> cell = Cell([2,2,2])
+    >>> g = Geometry(xyz, Atom('H'), cell)
 
     The following estimates the lattice vectors from the
     atomic coordinates, although possible, it is not recommended
@@ -1083,11 +1083,11 @@ class Geometry(CellChild):
         # Truncate to the correct segments
         lseg = seg % seps
         # Cut down cell
-        sc = self.sc.cut(seps, axis)
+        cell = self.sc.cut(seps, axis)
         # List of atoms
         n = self.na // seps
         off = n * lseg
-        new = self.sub(_a.arangei(off, off + n), cell=sc)
+        new = self.sub(_a.arangei(off, off + n), cell=cell)
         if not np.allclose(new.tile(seps, axis).xyz, self.xyz, rtol=rtol, atol=atol):
             st = 'The cut structure cannot be re-created by tiling'
             st += '\nThe difference between the coordinates can be altered using rtol, atol'
@@ -1160,7 +1160,7 @@ class Geometry(CellChild):
         if reps < 1:
             raise ValueError(self.__class__.__name__ + '.tile() requires a repetition above 0')
 
-        sc = self.sc.tile(reps, axis)
+        cell = self.sc.tile(reps, axis)
 
         # Our first repetition *must* be with
         # the former coordinate
@@ -1176,7 +1176,7 @@ class Geometry(CellChild):
 
         # Create the geometry and return it (note the smaller atoms array
         # will also expand via tiling)
-        return self.__class__(xyz, atom=self.atoms.tile(reps), cell=sc)
+        return self.__class__(xyz, atom=self.atoms.tile(reps), cell=cell)
 
     def repeat(self, reps, axis):
         """ Create a repeated geometry
@@ -1235,7 +1235,7 @@ class Geometry(CellChild):
         if reps < 1:
             raise ValueError(self.__class__.__name__ + '.repeat() requires a repetition above 0')
 
-        sc = self.sc.repeat(reps, axis)
+        cell = self.sc.repeat(reps, axis)
 
         # Our first repetition *must* be with
         # the former coordinate
@@ -1250,7 +1250,7 @@ class Geometry(CellChild):
         xyz.shape = (-1, 3)
 
         # Create the geometry and return it
-        return self.__class__(xyz, atom=self.atoms.repeat(reps), cell=sc)
+        return self.__class__(xyz, atom=self.atoms.repeat(reps), cell=cell)
 
     def __mul__(self, m):
         """ Implement easy repeat function
@@ -1466,9 +1466,9 @@ class Geometry(CellChild):
 
         # Rotate by direct call
         if 'abc' in only:
-            sc = self.sc.rotate(angle, vn, rad=rad, only=only)
+            cell = self.sc.rotate(angle, vn, rad=rad, only=only)
         else:
-            sc = self.sc.copy()
+            cell = self.sc.copy()
 
         # Copy
         xyz = np.copy(self.xyz)
@@ -1477,7 +1477,7 @@ class Geometry(CellChild):
             # subtract and add origo, before and after rotation
             xyz[atom, :] = q.rotate(xyz[atom, :] - origo[None, :]) + origo[None, :]
 
-        return self.__class__(xyz, atom=self.atoms.copy(), cell=sc)
+        return self.__class__(xyz, atom=self.atoms.copy(), cell=cell)
 
     def rotate_miller(self, m, v):
         """ Align Miller direction along ``v``
@@ -1571,10 +1571,10 @@ class Geometry(CellChild):
             xyz[:, a] = self.xyz[:, b]
             xyz[:, b] = self.xyz[:, a]
         if 'cell' in swap:
-            sc = self.sc.swapaxes(a, b)
+            cell = self.sc.swapaxes(a, b)
         else:
-            sc = self.sc.copy()
-        return self.__class__(xyz, atom=self.atoms.copy(), cell=sc)
+            cell = self.sc.copy()
+        return self.__class__(xyz, atom=self.atoms.copy(), cell=cell)
 
     def center(self, atom=None, what='xyz'):
         """ Returns the center of the geometry
@@ -1652,7 +1652,7 @@ class Geometry(CellChild):
             # Only extend the supercell.
             xyz = np.copy(self.xyz)
             atom = self.atoms.copy()
-            sc = self.sc.append(other, axis)
+            cell = self.sc.append(other, axis)
         else:
             if align == 'none':
                 xyz = np.append(self.xyz, self.cell[axis, :][None, :] + other.xyz, axis=0)
@@ -1665,8 +1665,8 @@ class Geometry(CellChild):
             else:
                 raise ValueError(self.__class__.__name__ + '.append requires align keyword to be one of [none, min]')
             atom = self.atoms.append(other.atom)
-            sc = self.sc.append(other.sc, axis)
-        return self.__class__(xyz, atom=atom, cell=sc)
+            cell = self.sc.append(other.sc, axis)
+        return self.__class__(xyz, atom=atom, cell=cell)
 
     def prepend(self, other, axis, align='none'):
         """ Prepend two structures along `axis`
@@ -1710,7 +1710,7 @@ class Geometry(CellChild):
             # Only extend the supercell.
             xyz = np.copy(self.xyz)
             atom = self.atoms.copy()
-            sc = self.sc.prepend(other, axis)
+            cell = self.sc.prepend(other, axis)
         else:
             if align == 'none':
                 xyz = np.append(other.xyz, other.cell[axis, :][None, :] + self.xyz, axis=0)
@@ -1723,9 +1723,9 @@ class Geometry(CellChild):
             else:
                 raise ValueError(self.__class__.__name__ + '.prepend requires align keyword to be one of [none, min]')
             atom = self.atoms.prepend(other.atom)
-            sc = self.sc.append(other.sc, axis)
+            cell = self.sc.append(other.sc, axis)
 
-        return self.__class__(xyz, atom=atom, cell=sc)
+        return self.__class__(xyz, atom=atom, cell=cell)
 
     def add(self, other):
         """ Merge two geometries (or a Geometry and Cell) by adding the two atoms together
@@ -1747,13 +1747,13 @@ class Geometry(CellChild):
         """
         if isinstance(other, Cell):
             xyz = self.xyz.copy()
-            sc = self.sc + other
+            cell = self.sc + other
             atom = self.atoms.copy()
         else:
             xyz = np.append(self.xyz, other.xyz, axis=0)
-            sc = self.sc.copy()
+            cell = self.sc.copy()
             atom = self.atoms.add(other.atom)
-        return self.__class__(xyz, atom=atom, cell=sc)
+        return self.__class__(xyz, atom=atom, cell=cell)
 
     def insert(self, atom, geom):
         """ Inserts other atoms right before index
@@ -2016,8 +2016,8 @@ class Geometry(CellChild):
         """
         xyz = self.xyz * scale
         atom = self.atoms.scale(scale)
-        sc = self.sc.scale(scale)
-        return self.__class__(xyz, atom=atom, cell=sc)
+        cell = self.sc.scale(scale)
+        return self.__class__(xyz, atom=atom, cell=cell)
 
     def within_sc(self, shapes, isc=None,
                   idx=None, idx_xyz=None,
@@ -3072,8 +3072,8 @@ class Geometry(CellChild):
                                    [0, self.nsc[2] // 2]):
                 if i == 0 and j == 0 and k == 0:
                     continue
-                sc = [i, j, k]
-                off = self.sc.offset(sc)
+                isc = [i, j, k]
+                off = self.sc.offset(isc)
 
                 for ii, jj, kk in product([0, 1], [0, 1], [0, 1]):
                     o = self.cell[0, :] * ii + \
@@ -3152,7 +3152,7 @@ class Geometry(CellChild):
 
         return d
 
-    def within_inf(self, sc, periodic=None, tol=1e-5, origo=None):
+    def within_inf(self, cell, periodic=None, tol=1e-5, origo=None):
         """ Find all atoms within a provided supercell
 
         Note this function is rather different from `close` and `within`.
@@ -3170,7 +3170,7 @@ class Geometry(CellChild):
 
         Parameters
         ----------
-        sc : Cell or CellChild
+        cell : Cell or CellChild
             the supercell in which this geometry should be expanded into.
         periodic : list of bool
             explicitly define the periodic directions, by default the periodic
@@ -3185,7 +3185,7 @@ class Geometry(CellChild):
         Returns
         -------
         ia : numpy.ndarray
-           unit-cell atomic indices which are inside the `sc` cell
+           unit-cell atomic indices which are inside the `cell` cell
         xyz : numpy.ndarray
            atomic coordinates for the `ia` atoms (including supercell offsets)
         isc : numpy.ndarray
@@ -3203,13 +3203,13 @@ class Geometry(CellChild):
         # enough to fully encompass the supercell
 
         # 1. Number of times each lattice vector must be expanded to fit
-        #    inside the "possibly" larger `sc`.
-        idx = dot(sc.cell, self.icell.T)
+        #    inside the "possibly" larger `cell`.
+        idx = dot(cell.cell, self.icell.T)
         tile_min = np.floor(idx.min(0))
         tile_max = np.ceil(idx.max(0)).astype(dtype=int32)
 
         # 1a) correct for origo displacement
-        idx = np.floor(dot(sc.origo, self.icell.T))
+        idx = np.floor(dot(cell.origo, self.icell.T))
         tile_min = np.where(tile_min < idx, tile_min, idx).astype(dtype=int32)
         idx = np.floor(dot(origo, self.icell.T))
         tile_min = np.where(tile_min < idx, tile_min, idx).astype(dtype=int32)
@@ -3220,7 +3220,7 @@ class Geometry(CellChild):
 
         # 3. Find the *new* origo according to the *negative* tilings.
         #    This is important for skewed cells as the placement of the new
-        #    larger geometry has to be shifted to have sc inside
+        #    larger geometry has to be shifted to have cell inside
         big_origo = (tile_min.reshape(3, 1) * self.cell).sum(0)
 
         # The xyz geometry that fully encompass the (possibly) larger supercell
@@ -3228,7 +3228,7 @@ class Geometry(CellChild):
         full_geom = (self * tile).translate(big_origo - origo)
 
         # Now we have to figure out all atomic coordinates within
-        cuboid = sc.toCuboid()
+        cuboid = cell.toCuboid()
 
         # Now retrieve all atomic coordinates from the full geometry
         xyz = full_geom.axyz(_a.arangei(full_geom.na_s))
@@ -3270,11 +3270,11 @@ class Geometry(CellChild):
 
     def __setstate__(self, d):
         """ Re-create the state of this object """
-        sc = Cell([1, 1, 1])
-        sc.__setstate__(d)
+        cell = Cell([1, 1, 1])
+        cell.__setstate__(d)
         atoms = Atoms()
         atoms.__setstate__(d['atom'])
-        self.__init__(d['xyz'], atom=atoms, cell=sc)
+        self.__init__(d['xyz'], atom=atoms, cell=cell)
 
     @classmethod
     def _ArgumentParser_args_single(cls):
