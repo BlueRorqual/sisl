@@ -3,10 +3,11 @@ channels:
   - conda-forge
 dependencies:
   - gcc_linux-64
-  - gxx_linux-64
   - gfortran_linux-64
   - libgcc-ng
   - libgcc
+  - libgfortran-ng
+  - libgfortran
   - python=3.6
   - six
   - setuptools
