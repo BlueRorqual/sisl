@@ -2,6 +2,7 @@ name: test-env
 channels:
   - conda-forge
 dependencies:
+  - gcc
   - python=3.6
   - six
   - setuptools

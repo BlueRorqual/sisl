@@ -31,16 +31,16 @@ notifications:
 
 matrix:
   include:
-   - env:
-     - CONDA_ENV=py27
-   - env:
-     - CONDA_ENV=py27-opt
-     - OPTIONAL_DEPENDENCIES=true
+#   - env:
+#     - CONDA_ENV=py27
+#   - env:
+#     - CONDA_ENV=py27-opt
+#     - OPTIONAL_DEPENDENCIES=true
    - env:
      - CONDA_ENV=py36
-   - env:
-     - CONDA_ENV=py36-opt
-     - OPTIONAL_DEPENDENCIES=true
+#   - env:
+#     - CONDA_ENV=py36-opt
+#     - OPTIONAL_DEPENDENCIES=true
 
 before_install:
   - |
@@ -53,8 +53,8 @@ before_install:
   - export PATH=$HOME/miniconda/bin:$PATH
   - hash -r
   - conda config --set always_yes yes --set changeps1 no --set show_channel_urls true
-# Do actual package installations
-  - conda update -q conda
+  # Do actual package installations
+  #- conda update -q conda
   - conda info -a
   - | # In case we have optional dependencies, also download the sisl-files submodule to test large files
     if [[ ${OPTIONAL_DEPENDENCIES:-false} == true ]]; then
