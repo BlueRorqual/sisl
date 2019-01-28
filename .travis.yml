@@ -45,9 +45,9 @@ matrix:
 before_install:
   - |
     if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
-        wget http://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh ;
+        wget https://repo.anaconda.com/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh ;
     else
-        wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh ;
+        wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh ;
     fi
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH=$HOME/miniconda/bin:$PATH
@@ -73,6 +73,7 @@ install:
 script:
   - which python
   - python --version
+  # Check that compiling without __doc__ works!
   - python -OO -c "import sisl"
   - |
     if [[ ${COVERAGE:-true} == true ]]; then
