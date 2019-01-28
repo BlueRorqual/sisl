@@ -2,13 +2,8 @@ name: test-env
 channels:
   - conda-forge
 dependencies:
-  - gcc_linux-64
-  - gfortran_linux-64
-  - libgcc-ng
-  - libgcc
-  - libgfortran-ng
-  - libgfortran
-  - gcc
+  - toolchain_c
+  - toolchain_fortran
   - python=3.6
   - six
   - setuptools
