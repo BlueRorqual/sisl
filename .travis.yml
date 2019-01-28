@@ -68,6 +68,8 @@ install:
   - source activate test_env
   - conda list
   - pip install --upgrade pip
+  - gcc --version
+  - gfortran --version
   # verbose (max-out)
   - pip install --no-deps -v -v -v -e .
 
