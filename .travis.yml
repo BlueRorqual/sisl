@@ -67,6 +67,7 @@ install:
   - conda env create -n test_env --file ci/requirements-$CONDA_ENV.yml
   - source activate test_env
   - conda list
+  - pip install --upgrade pip
   # verbose (max-out)
   - pip install --no-deps -v -v -v -e .
 
