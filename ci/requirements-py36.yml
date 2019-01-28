@@ -8,6 +8,7 @@ dependencies:
   - libgcc
   - libgfortran-ng
   - libgfortran
+  - gcc
   - python=3.6
   - six
   - setuptools
