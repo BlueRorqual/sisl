@@ -1,9 +1,8 @@
 name: test-env
 channels:
-  - conda-forge
+  - conda-forge,defaults
 dependencies:
-  - toolchain_c
-  - toolchain_fortran
+  - gcc
   - python=3.6
   - six
   - setuptools
